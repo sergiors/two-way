@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <div><label for="">foo</label><input type="text" id="foo"></div>
+    <div><label for="">bar</label><input type="text" id="bar"></div>
+    <script>
+        var foo = document.querySelector('#foo');
+        var bar = document.querySelector('#bar');
+        
+        if (!Object.prototype.watch) {
+            Object.defineProperty(Object.prototype, 'watch', {
+                configurable: true,
+                value: function(prop, handler) {
+                    var old = this[prop];
+                    
+                    var getter = function() {
+                        return old;
+                    }
+                    var setter = function(val) {
+                        if (val === old) return false
+                        
+                        handler.call(this, prop, old, val);
+                        old = val;
+                    }
+
+                    if (delete this[prop]) {
+                        Object.defineProperty(this, prop, {
+                            get: getter,
+                            set: setter,
+                            enumerable: true,
+                            configurable: true
+                        });
+                    }
+                }
+            });
+        }
+        
+        if (!Object.prototype.unwatch) {
+            Object.defineProperty(Object.prototype, 'unwatch', {
+                configurable: true,
+                value: function(prop) {
+                    var val = this[prop];
+                    delete this[prop];
+                    this[prop] = val;
+                }
+            });
+        }
+        
+        var user = {name: 'Sérgio'};
+        
+        user.watch('name', function(prop, oldval, newval) {
+            console.log(this)
+            bar.value = newval;
+            return newval;
+        })
+        
+        foo.onkeyup = function(e) {
+            user.name = e.target.value;
+        }
+    </script>
+</body>
+</html>
